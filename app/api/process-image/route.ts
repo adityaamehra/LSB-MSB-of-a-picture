@@ -4,6 +4,8 @@ import { promisify } from 'util'
 import fs from 'fs/promises'
 import path from 'path'
 import os from 'os'
+export const runtime = 'edge'; // or 'nodejs'
+
 
 const execAsync = promisify(exec)
 
