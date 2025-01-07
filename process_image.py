@@ -1,10 +1,17 @@
 from PIL import Image
-image = Image.open("chall.png")
-image = image.convert("RGB")
-pixels = image.getdata()
+import io
+
 def msbb(a):
     return str((a & 128) >> 7)
-with open("decoded_text_lsb.txt", "w") as f:
+
+def decode_image(image_data):
+    # Open the image from the provided byte data
+    image = Image.open(io.BytesIO(image_data))
+    image = image.convert("RGB")
+    pixels = image.getdata()
+
+    # LSB Decoding
+    lsb_decoded_text = []
     binary_chunk = []
     for pixel in pixels:
         r, g, b = pixel
@@ -13,8 +20,10 @@ with open("decoded_text_lsb.txt", "w") as f:
             byte = ''.join(binary_chunk[:8])
             binary_chunk = binary_chunk[8:]
             char = chr(int(byte, 2))
-            f.write(char)
-with open("decoded_text_msb.txt", "w") as f:
+            lsb_decoded_text.append(char)
+
+    # MSB Decoding
+    msb_decoded_text = []
     binary_chunk = []
     for pixel in pixels:
         r, g, b = pixel
@@ -23,4 +32,6 @@ with open("decoded_text_msb.txt", "w") as f:
             byte = ''.join(binary_chunk[:8])
             binary_chunk = binary_chunk[8:]
             char = chr(int(byte, 2))
-            f.write(char)
+            msb_decoded_text.append(char)
+
+    return ''.join(lsb_decoded_text), ''.join(msb_decoded_text)
