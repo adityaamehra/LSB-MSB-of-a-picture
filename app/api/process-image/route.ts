@@ -1,62 +1,51 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { exec } from 'child_process'
-import { promisify } from 'util'
-import fs from 'fs/promises'
-import path from 'path'
-import os from 'os'
-
-const execAsync = promisify(exec)
-
-// Define the runtime (Next.js 13+ way)
-export const runtime = 'nodejs'  // This specifies the environment your API will use
-
 export async function POST(req: NextRequest) {
   try {
-    console.log('Received image processing request')
-    const formData = await req.formData()
-    const image = formData.get('image') as File
+    // Log incoming request
+    console.log("Received POST request for image processing");
 
+    const formData = await req.formData();
+    const image = formData.get('image') as File;
     if (!image) {
-      console.log('No image provided')
-      return NextResponse.json({ error: 'No image provided' }, { status: 400 })
+      return NextResponse.json({ error: 'No image provided' }, { status: 400 });
     }
 
-    console.log(`Received image: ${image.name}, size: ${image.size} bytes`)
+    console.log(`Received image: ${image.name}, size: ${image.size}`);
 
-    // Create a temporary directory
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'image-processor-'))
-    console.log(`Created temporary directory: ${tempDir}`)
+    const imageBuffer = await image.arrayBuffer();
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'image-processor-'));
+    const inputPath = path.join(tempDir, 'input_image.jpg');
+    const outputLsbPath = path.join(tempDir, 'decoded_lsb.txt');
+    const outputMsbPath = path.join(tempDir, 'decoded_msb.txt');
 
-    const inputPath = path.join(tempDir, 'input.jpg')
-    const outputPath = path.join(tempDir, 'output.bin')
+    console.log(`Input path: ${inputPath}`);
+    console.log(`Output LSB path: ${outputLsbPath}`);
+    console.log(`Output MSB path: ${outputMsbPath}`);
 
-    // Write the uploaded file to the temporary directory
-    const bytes = await image.arrayBuffer()
-    await fs.writeFile(inputPath, Buffer.from(bytes))
-    console.log(`Wrote input file to: ${inputPath}`)
+    await fs.writeFile(inputPath, Buffer.from(imageBuffer));
 
-    // Run the Python script
-    console.log('Starting Python script execution')
-    const { stdout, stderr } = await execAsync(`python3 process_image.py "${inputPath}" "${outputPath}"`)
-    console.log('Python script output:', stdout)
+    // Log before running Python script
+    console.log('Running Python script...');
+    const { stdout, stderr } = await execAsync(`python3 process_image.py "${inputPath}" "${outputLsbPath}" "${outputMsbPath}"`);
+    console.log('Python script stdout:', stdout);
     if (stderr) {
-      console.error('Python script error:', stderr)
+      console.error('Python script stderr:', stderr);
     }
 
-    // If the Python script printed out data, capture it
-    const pythonOutput = stdout.trim()
+    const lsbData = await fs.readFile(outputLsbPath);
+    const msbData = await fs.readFile(outputMsbPath);
 
-    // Clean up temporary files
-    await fs.rm(tempDir, { recursive: true, force: true })
-    console.log('Cleaned up temporary directory')
+    await fs.rm(tempDir, { recursive: true, force: true });
 
-    // Send the Python script output as a response to the client
-    return NextResponse.json({
-      message: 'Image processed successfully!',
-      pythonOutput: pythonOutput,
-    })
+    return new NextResponse([lsbData, msbData], {
+      headers: {
+        'Content-Disposition': 'attachment; filename="decoded_lsb.txt"',
+        'Content-Type': 'application/octet-stream',
+      },
+    });
+
   } catch (error) {
-    console.error('Error processing image:', error)
-    return NextResponse.json({ error: 'Failed to process image' }, { status: 500 })
+    console.error('Error processing image:', error);
+    return NextResponse.json({ error: 'Failed to process image' }, { status: 500 });
   }
 }
+
