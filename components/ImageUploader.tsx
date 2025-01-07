@@ -1,15 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Progress } from "@/components/ui/progress"
 
 export default function ImageUploader() {
   const [file, setFile] = useState<File | null>(null)
   const [processing, setProcessing] = useState(false)
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [progress, setProgress] = useState(0)
+  const [status, setStatus] = useState<string | null>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -25,6 +28,8 @@ export default function ImageUploader() {
     setProcessing(true)
     setError(null)
     setDownloadUrl(null)
+    setProgress(0)
+    setStatus('Uploading file...')
 
     const formData = new FormData()
     formData.append('image', file)
@@ -39,9 +44,14 @@ export default function ImageUploader() {
         throw new Error('Failed to process image')
       }
 
+      setStatus('Processing image...')
+      setProgress(50)
+
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       setDownloadUrl(url)
+      setProgress(100)
+      setStatus('Processing complete')
     } catch (err) {
       setError('An error occurred while processing the image.')
       console.error(err)
@@ -63,6 +73,12 @@ export default function ImageUploader() {
           {processing ? 'Processing...' : 'Process Image'}
         </Button>
       </form>
+      {processing && (
+        <div className="mt-4">
+          <Progress value={progress} className="w-full" />
+          <p className="text-center mt-2">{status}</p>
+        </div>
+      )}
       {error && (
         <Alert variant="destructive" className="mt-4">
           <AlertTitle>Error</AlertTitle>
@@ -87,3 +103,4 @@ export default function ImageUploader() {
     </div>
   )
 }
+
