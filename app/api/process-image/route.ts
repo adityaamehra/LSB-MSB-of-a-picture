@@ -7,6 +7,9 @@ import os from 'os'
 
 const execAsync = promisify(exec)
 
+// Define the runtime (Next.js 13+ way)
+export const runtime = 'nodejs'  // This specifies the environment your API will use
+
 export async function POST(req: NextRequest) {
   try {
     console.log('Received image processing request')
@@ -40,31 +43,20 @@ export async function POST(req: NextRequest) {
       console.error('Python script error:', stderr)
     }
 
-    // Read the processed file
-    const processedData = await fs.readFile(outputPath)
-    console.log(`Read processed file: ${outputPath}, size: ${processedData.length} bytes`)
+    // If the Python script printed out data, capture it
+    const pythonOutput = stdout.trim()
 
     // Clean up temporary files
     await fs.rm(tempDir, { recursive: true, force: true })
     console.log('Cleaned up temporary directory')
 
-    // Send the processed data as a downloadable file
-    console.log('Sending processed data to client')
-    return new NextResponse(processedData, {
-      headers: {
-        'Content-Disposition': 'attachment; filename="processed_image.bin"',
-        'Content-Type': 'application/octet-stream',
-      },
+    // Send the Python script output as a response to the client
+    return NextResponse.json({
+      message: 'Image processed successfully!',
+      pythonOutput: pythonOutput,
     })
   } catch (error) {
     console.error('Error processing image:', error)
     return NextResponse.json({ error: 'Failed to process image' }, { status: 500 })
   }
 }
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}
-
