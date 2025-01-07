@@ -1,0 +1,50 @@
+{
+  "name": "lsb-msb-of-a-picture",
+  "version": "1.0.0",
+  "main": "next.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adityaamehra/LSB-MSB-of-a-picture.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/adityaamehra/LSB-MSB-of-a-picture/issues"
+  },
+  "homepage": "https://github.com/adityaamehra/LSB-MSB-of-a-picture#readme",
+  "description": "",
+  "dependencies": {
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.3",
+    "@types/react-dom": "^19.0.2",
+    "next": "^15.1.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.2"
+  }
+  {
+    "name": "large-image-processor",
+    "version": "1.0.0",
+    "scripts": {
+      "dev": "next dev",
+      "build": "next build",
+      "start": "next start",
+      "lint": "next lint"
+    },
+    "dependencies": {
+      "next": "^13.4.4",
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0"
+    },
+    "devDependencies": {
+      "@types/node": "^20.2.5",
+      "@types/react": "^18.2.7",
+      "@types/react-dom": "^18.2.4",
+      "typescript": "^5.0.4"
+    }
+  }
+}
